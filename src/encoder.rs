@@ -1033,6 +1033,20 @@ impl<W: Write> Writer<W> {
         drop(self);
         Ok(())
     }
+
+    pub fn finish_and_write<F>(mut self, mut f: F) -> Result<()>
+    where
+        F: FnMut(&mut W),
+    {
+        self.validate_sequence_done()?;
+        self.write_iend()?;
+        self.w.flush()?;
+
+        f(&mut self.w);
+        // Explicitly drop `self` just for clarity.
+        drop(self);
+        Ok(())
+    }
 }
 
 impl<W: Write> Drop for Writer<W> {
